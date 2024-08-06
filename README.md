@@ -19,7 +19,7 @@ NetSanitizer is a URL deduplication tool designed to filter and clean a list of 
 
 2. Build the executable:
     ```sh
-    go build -o NetSanitizer
+    go build  NetSanitizer
     ```
 
 ## Usage
