@@ -44,6 +44,6 @@ Running ./NetSanitizer urls.txt will produce:
 
 bash
 ```sh
-http://example.com/path?a=1&b=2
+http://example.com/path?b=2&a=1
 http://example.com/path2
 ```
