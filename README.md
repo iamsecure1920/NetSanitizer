@@ -28,4 +28,22 @@ Provide a file containing URLs, and NetSanitizer will output a deduplicated list
 
 ```sh
 ./NetSanitizer <input_file>
+ ```
 
+Example
+Consider you have a file urls.txt with the following content:
+
+bash
+```sh
+http://example.com/path?b=2&a=1
+http://example.com/path?b=2&a=1#fragment
+http://example.com/path2
+http://example.com/image.png
+```
+Running ./NetSanitizer urls.txt will produce:
+
+bash
+```sh
+http://example.com/path?a=1&b=2
+http://example.com/path2
+```
