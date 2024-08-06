@@ -1,6 +1,6 @@
 # NetSanitizer
 
-NetSanitizer is a URL deduplication tool designed to filter and clean a list of URLs by normalizing them, removing duplicates, and ignoring certain file types. It ensures a clean set of URLs, prioritizing those with more query parameters for web-related paths. This tool is particularly useful for web scraping, SEO audits, and any application requiring unique URLs from a large dataset.
+NetSanitizer is a URL deduplication tool designed to filter and clean a list of URLs by normalizing them, removing duplicates, and ignoring certain file types. It ensures a clean set of URLs, prioritizing those with more query parameters for web-related paths. This tool is handy for bug bounty hunters and penetration testers during reconnaissance.
 
 ## Features
 
@@ -8,6 +8,7 @@ NetSanitizer is a URL deduplication tool designed to filter and clean a list of 
 - **File Type Filtering**: Ignores URLs with specified file extensions (e.g., images, scripts, documents).
 - **Path Deduplication**: Deduplicates URLs based on their paths, prioritizing more informative URLs.
 - **Web Suffix Handling**: Recognizes and processes common web-related file extensions.
+
 
 ## Installation
 
