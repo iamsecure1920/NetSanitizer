@@ -48,3 +48,5 @@ bash
 http://example.com/path?b=2&a=1
 http://example.com/path2
 ```
+
+https://github.com/user-attachments/assets/a1e93aaf-c669-4288-8d81-c149cb8f87b7
