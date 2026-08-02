@@ -1,52 +1,76 @@
 # NetSanitizer
 
-NetSanitizer is a URL deduplication tool designed to filter and clean a list of URLs by normalizing them, removing duplicates, and ignoring certain file types. It ensures a clean set of URLs, prioritizing those with more query parameters for web-related paths. This tool is handy for bug bounty hunters and penetration testers during reconnaissance.
+NetSanitizer collapses reconnaissance URL dumps into the set of **distinct
+injection points** — what a tester actually needs — rather than the set of
+distinct URLs.
 
-## Features
-
-- **URL Normalization**: Removes fragments and sorts query parameters for consistency.
-- **File Type Filtering**: Ignores URLs with specified file extensions (e.g., images, scripts, documents).
-- **Path Deduplication**: Deduplicates URLs based on their paths, prioritizing more informative URLs.
-- **Web Suffix Handling**: Recognizes and processes common web-related file extensions.
-
-
-## Installation
-
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/NetSanitizer.git
-    cd NetSanitizer
-    ```
-
-2. Build the executable:
-    ```sh
-    go build  NetSanitizer
-    ```
+Archive sources (gau, waybackurls, waymore) return the same endpoint hundreds of
+times with different *values* in the same parameters. Measured on a real
+engagement, 5,065 archived URLs contained 61 distinct injection points;
+everything in between is scan budget spent re-testing one endpoint.
 
 ## Usage
 
-Provide a file containing URLs, and NetSanitizer will output a deduplicated list to the console.
-
 ```sh
-./NetSanitizer <input_file>
- ```
-
-Example
-Consider you have a file urls.txt with the following content:
-
-bash
-```sh
-http://example.com/path?b=2&a=1
-http://example.com/path?b=2&a=1#fragment
-http://example.com/path2
-http://example.com/image.png
-```
-Running ./NetSanitizer urls.txt will produce:
-
-bash
-```sh
-http://example.com/path?b=2&a=1
-http://example.com/path2
+netsanitizer urls.txt
+cat urls.txt | netsanitizer
+gau example.com | netsanitizer -keep-scripts
 ```
 
-https://github.com/user-attachments/assets/a1e93aaf-c669-4288-8d81-c149cb8f87b7
+| flag | effect |
+|---|---|
+| `-keep-assets` | keep images, fonts, archives (dropped by default) |
+| `-keep-scripts` | keep `.js` and source maps — useful before JS analysis |
+| `-q` | suppress the summary on stderr |
+
+## How it deduplicates
+
+The key is `scheme + host + path + the set of parameter NAMES`. Values are
+ignored, so `/item?id=1` and `/item?id=999` are one injection point — but
+`/item?id=1` and `/item?ref=x` are two, because they accept different input.
+Where several URLs share a key, the one with the most parameters wins.
+
+Fragments are stripped (`#frag` never reaches the server) and query parameters
+are sorted, so ordering differences do not create duplicates.
+
+## What is kept
+
+`.json` and `.xml` are **not** dropped. An API returning JSON is among the most
+interesting things recon finds, and discarding `/api/v1/users.json?id=1` throws
+away a prime IDOR candidate. Only genuinely static assets — images, fonts,
+media, archives — are removed by default.
+
+JavaScript is dropped by default but kept with `-keep-scripts`, because JS
+bundles carry endpoints, API keys and internal hostnames that are worth
+analysing separately.
+
+## Output
+
+Sorted, and therefore stable across runs. Two passes over the same input produce
+byte-identical output, so recon results can be diffed to find what changed —
+which is the point of running recon twice.
+
+## Build
+
+```sh
+go build -o netsanitizer NetSanitizer.go
+```
+
+## Example
+
+```
+$ cat urls.txt
+https://x.com/shop/item?id=1
+https://x.com/shop/item?id=999
+https://x.com/shop/cart?sess=9
+https://x.com/api/v1/users.json?id=1
+https://x.com/static/app.js
+https://x.com/a/b?p=1#fragment
+
+$ netsanitizer urls.txt
+https://x.com/a/b?p=1
+https://x.com/api/v1/users.json?id=1
+https://x.com/shop/cart?sess=9
+https://x.com/shop/item?id=1
+netsanitizer: 6 urls -> 4 distinct injection points
+```
